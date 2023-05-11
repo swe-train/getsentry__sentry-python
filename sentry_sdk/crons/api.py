@@ -32,6 +32,9 @@ def _create_check_in_event(
     if monitor_config:
         check_in["monitor_config"] = monitor_config
 
+    print("Checkin:")
+    print(check_in)
+
     return check_in
 
 

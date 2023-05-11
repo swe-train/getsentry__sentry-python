@@ -200,6 +200,9 @@ class _Client(object):
     def _init_impl(self):
         # type: () -> None
         old_debug = _client_init_debug.get(False)
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
         def _capture_envelope(envelope):
             # type: (Envelope) -> None
