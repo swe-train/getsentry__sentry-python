@@ -34,6 +34,7 @@ from sentry_sdk.envelope import Envelope
 from sentry_sdk.profiler import has_profiling_enabled, setup_profiler
 from sentry_sdk.scrubber import EventScrubber
 from sentry_sdk.monitor import Monitor
+from sentry_sdk.spotlight import setup_spotlight
 
 from sentry_sdk._types import TYPE_CHECKING
 
@@ -257,7 +258,8 @@ class _Client(object):
                 setup_profiler(self.options)
             except ValueError as e:
                 logger.debug(str(e))
-
+        
+        self.spotlight = setup_spotlight(self.options)
         self._setup_instrumentation(self.options.get("functions_to_trace", []))
 
     @property
@@ -577,6 +579,9 @@ class _Client(object):
             # All other events go to the legacy /store/ endpoint (will be removed in the future).
             self.transport.capture_event(event_opt)
 
+        if self.spotlight:
+            self.spotlight.capture_event(event_opt)
+
         return event_id
 
     def capture_session(
@@ -605,6 +610,9 @@ class _Client(object):
                 self.monitor.kill()
             self.transport.kill()
             self.transport = None
+        if self.spotlight is not None:
+            self.spotlight.kill()
+            self.spotlight = None
 
     def flush(
         self,
