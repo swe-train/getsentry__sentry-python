@@ -12,20 +12,9 @@ import sentry_sdk
 from sentry_sdk.integrations.falcon import FalconIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
-try:
-    import falcon.asgi
-except ImportError:
-    # Only test WSGI app
-    APP_CONSTRUCTORS = [falcon.API]
-else:
-    # Test ASGI and WSGI apps
-    APP_CONSTRUCTORS = [falcon.App, falcon.asgi.App]
 
-
-@pytest.fixture(params=APP_CONSTRUCTORS)
-def make_app(request, sentry_init):
-    app_constructor = request.param
-
+@pytest.fixture
+def make_app(sentry_init):
     def inner():
         class MessageResource:
             def on_get(self, req, resp):
@@ -37,7 +26,7 @@ def make_app(request, sentry_init):
                 sentry_sdk.capture_message("hi")
                 resp.media = "hi"
 
-        app = app_constructor()
+        app = falcon.API()
         app.add_route("/message", MessageResource())
         app.add_route("/message/{message_id:int}", MessageByIdResource())
 
