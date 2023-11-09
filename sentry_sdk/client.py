@@ -609,6 +609,12 @@ class _Client(object):
                     envelope.add_profile(profile.to_json(event_opt, self.options))
                 envelope.add_transaction(event_opt)
             elif is_checkin:
+                # num_breadcrumbs = len(event_opt["breadcrumbs"]["values"])
+                # print(num_breadcrumbs)
+                # if num_breadcrumbs > 1:
+                #     print(event_opt)
+                #     import sys
+                #     sys.exit(1)
                 envelope.add_checkin(event_opt)
             else:
                 envelope.add_event(event_opt)
