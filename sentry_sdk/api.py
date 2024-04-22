@@ -373,17 +373,31 @@ def continue_trace(environ_or_headers, op=None, name=None, source=None):
 
 def get_global_scope():
     # type: () -> Scope
-    """Returns the global scope."""
+    """
+    Returns the global scope.
+
+    For advanced usage only. The SDK will manage the scopes for you in usual
+    scenarios, so there is no need to access them directly.
+    """
     return Scope.get_global_scope()
 
 
 def get_isolation_scope():
     # type: () -> Scope
-    """Returns the currently active isolation scope."""
+    """
+    Returns the currently active isolation scope.
+
+    For advanced usage only. The SDK will manage the scopes for you in usual
+    scenarios, so there is no need to access them directly.
+    """
     return Scope.get_isolation_scope()
 
 
 def get_current_scope():
     # type: () -> Scope
-    """Returns the currently active current scope."""
+    """
+    Returns the currently active current scope.
+
+    For advanced usage only. The SDK will manage the scopes for you in usual
+    scenarios, so there is no need to access them directly."""
     return Scope.get_current_scope()
