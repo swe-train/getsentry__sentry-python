@@ -218,11 +218,35 @@ def patch_redis_client(cls, is_cluster, set_db_data_fn):
         if data_should_be_truncated:
             description = description[: integration.max_data_size - len("...")] + "..."
 
-        with sentry_sdk.start_span(op=OP.DB_REDIS, description=description) as span:
-            set_db_data_fn(span, self)
-            _set_client_data(span, is_cluster, name, *args)
+        # TODO: Here we could also create the caching spans.
+        # TODO: also need to check if the `name` (if this is the cache key value) matches the prefix we want to configure in __init__ of the integration
+        #       Questions:
+        #       -) We should probablby have the OP.DB_REDIS span and a separate OP.CACHE_GET_ITEM (or set_item) span, right?
+        #       -) We probably need to research what redis commands are used by caching libs.
+        # GitHub issue: https://github.com/getsentry/sentry-python/issues/2965
 
-            return old_execute_command(self, name, *args, **kwargs)
+        is_cache_key = False
+        for key in self.cache_prefixes:
+            if name.startswith(key):
+                is_cache_key = True
+
+        if is_cache_key:
+            cache_span = sentry_sdk.start_span(op="cache.get_item")
+            cache_span.__enter__()
+            # .. add more data to cache key from https://develop.sentry.dev/sdk/performance/modules/caches/
+
+        with sentry_sdk.start_span(op=OP.DB_REDIS, description=description) as db_span:
+            set_db_data_fn(db_span, self)
+            _set_client_data(db_span, is_cluster, name, *args)
+
+            value = old_execute_command(self, name, *args, **kwargs)
+
+            # .. add len(value) as cache.item_size to outer span
+
+            return value
+        
+        if cache_span:
+            cache_span.__exit__(None, None, None)
 
     cls.execute_command = sentry_patched_execute_command
 
@@ -352,12 +376,20 @@ def _patch_rediscluster():
     )
 
 
+sentry_init(dsn=...
+            integrations=[
+                CeleryIntegration(cache_prefixes=["cache", "bla"])
+
+            ])
+
 class RedisIntegration(Integration):
     identifier = "redis"
 
-    def __init__(self, max_data_size=_DEFAULT_MAX_DATA_SIZE):
-        # type: (int) -> None
+    def __init__(self, max_data_size=_DEFAULT_MAX_DATA_SIZE, cache_prefixes=[]):
+        # type: (int, list) -> None
         self.max_data_size = max_data_size
+
+        self.cache_prefixes = cache_prefixes
 
     @staticmethod
     def setup_once():

@@ -128,6 +128,7 @@ def _patch_beat_apply_entry():
 
     def sentry_apply_entry(*args, **kwargs):
         # type: (*Any, **Any) -> None
+        import ipdb; ipdb.set_trace()
         scheduler, schedule_entry = args
         app = scheduler.app
 
